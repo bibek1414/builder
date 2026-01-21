@@ -2,8 +2,8 @@ import { BuilderView } from '@/components/builder/BuilderView';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'AI Website Builder',
-  description: 'Build and edit your website with AI.',
+  title: 'Nepdora AI Website Builder',
+  description: 'Nepdora AI Website Builder',
 };
 
 export default async function BuilderPage({ params }: { params: Promise<{ workspaceId: string }> }) {
