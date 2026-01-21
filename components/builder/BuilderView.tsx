@@ -8,7 +8,7 @@ import { ChatInterface } from '@/components/builder/ChatInterface';
 import { GitHubModal } from '@/components/builder/GitHubModal';
 import { useWebContainer } from '@/hooks/useWebContainer';
 import { useUseRealData } from '@/hooks/use-templates';
-import { FileNode } from '@/types';
+import { FileNode } from '@/types/types';
 import { BuilderHeader } from '@/components/builder/BuilderHeader';
 import { BuilderSkeleton } from '@/components/builder/BuilderSkeleton';
 
