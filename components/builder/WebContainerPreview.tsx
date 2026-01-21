@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { transformFlatMapToWebContainer } from "../../utils/webcontainerUtils";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { WebContainer } from "@webcontainer/api";
-
 import { cn } from "@/lib/utils";
 
 interface WebContainerPreviewProps {
@@ -17,6 +16,11 @@ interface WebContainerPreviewProps {
   onTerminalError?: (error: string) => void;
 }
 
+interface BuildStatus {
+  isCompiling: boolean;
+  message?: string;
+}
+
 const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
   files,
   webContainerInstance,
@@ -27,26 +31,77 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
   onTerminalError,
 }) => {
   const [setupError, setSetupError] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState<"mounting" | "installing" | "building" | "starting" | "ready">("mounting");
+  const [currentStep, setCurrentStep] = useState<"mounting" | "installing" | "building" | "starting" | "compiling" | "ready">("mounting");
 
-  // Ref to prevent double setup execution in Concurrent Mode/Strict Mode
+  // Simple compile status
+  const [compileMessage, setCompileMessage] = useState<string>("");
+
+  // Refs
   const setupStartedRef = useRef(false);
-
-  // Error scanning logic
+  const devProcessRef = useRef<any>(null);
   const errorRegex = useRef(/(error:|exception:|failed:|fatal:|syntax failure|build failed|err_|node_modules\/.*\.js:\d+|module not found|cannot find module|uncaught|referenced by the type)/i);
   const errorBuffer = useRef<string>("");
   const errorTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const scanForErrors = useCallback((text: string) => {
-    // Simple buffer to catch split errors (keep last 2000 chars)
-    errorBuffer.current += text;
-    if (errorBuffer.current.length > 2000) {
-      errorBuffer.current = errorBuffer.current.slice(-1000);
+  // Simple log processor for status updates
+  const processLog = useCallback((data: string) => {
+    console.log(`[dev server]: ${data}`);
+
+    // Update current step based on logs
+    if (data.includes("Compiling /")) {
+      setCurrentStep("compiling");
+      setCompileMessage("Compiling application...");
     }
 
-    // Check recent text or buffer
-    if (errorRegex.current.test(text) || errorRegex.current.test(errorBuffer.current)) {
-      // Debounce error reporting
+    if (data.includes("Compiled /") || data.includes("Compiled in")) {
+      // Extract time if available
+      const timeMatch = data.match(/in\s+([\d.]+(s|ms))/);
+      if (timeMatch) {
+        setCompileMessage(`Compiled in ${timeMatch[1]}`);
+      } else {
+        setCompileMessage("Compilation complete");
+      }
+
+      // Keep showing compile message for 3 seconds, then go back to ready
+      setTimeout(() => {
+        setCurrentStep("ready");
+        setCompileMessage("");
+      }, 3000);
+    }
+
+    if (data.includes("[Fast Refresh] rebuilding")) {
+      setCurrentStep("compiling");
+      setCompileMessage("Hot reloading...");
+    }
+
+    if (data.includes("[Fast Refresh] done")) {
+      const timeMatch = data.match(/done in ([\d.]+ms)/);
+      if (timeMatch) {
+        setCompileMessage(`Hot reloaded in ${timeMatch[1]}`);
+      } else {
+        setCompileMessage("Hot reload complete");
+      }
+
+      setTimeout(() => {
+        setCurrentStep("ready");
+        setCompileMessage("");
+      }, 2000);
+    }
+
+    if (data.includes("Ready in")) {
+      const timeMatch = data.match(/Ready in\s+([\d.]+s)/);
+      if (timeMatch) {
+        setCompileMessage(`Ready in ${timeMatch[1]}`);
+      }
+    }
+
+    // Error handling
+    if (errorRegex.current.test(data)) {
+      errorBuffer.current += data;
+      if (errorBuffer.current.length > 2000) {
+        errorBuffer.current = errorBuffer.current.slice(-1000);
+      }
+
       if (errorTimeout.current) clearTimeout(errorTimeout.current);
       errorTimeout.current = setTimeout(() => {
         if (onTerminalError) {
@@ -60,11 +115,8 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
   // Initial setup effect
   useEffect(() => {
     async function setupContainer() {
-      // Don't start if we're already complete or already started
       if (!webContainerInstance || isSetupComplete || setupStartedRef.current) return;
 
-      // If server is already running, we can skip setup but we should still
-      // set the flag so sync logic works.
       if (serverUrl) {
         console.log("🌍 Server already running, skipping setup sequence");
         setIsSetupComplete(true);
@@ -72,7 +124,6 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         return;
       }
 
-      // Check if we have the necessary files to start (at least package.json)
       if (!files['package.json'] && !files['/package.json']) {
         console.log("⏳ Waiting for package.json before setup...");
         return;
@@ -83,19 +134,15 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         setSetupError(null);
         setCurrentStep("mounting");
 
-        // Check if files are already mounted by checking if package.json exists in FS
+        // Mount files
         let filesMounted = false;
         try {
-          // Use absolute path for robustness
           await webContainerInstance.fs.readFile('/package.json');
           filesMounted = true;
           console.log("📄 /package.json found in FS, skipping mount");
-        } catch {
-          // package.json doesn't exist, need to mount
-        }
+        } catch { }
 
         if (!filesMounted) {
-          // Step 1: Mount files
           console.log("📁 Mounting files to WebContainer...");
           const webContainerFiles = transformFlatMapToWebContainer(files);
           await webContainerInstance.mount(webContainerFiles);
@@ -104,7 +151,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
           console.log("📁 Files already mounted in this session, skipping...");
         }
 
-        // Check if node_modules exists to skip install
+        // Install dependencies
         let dependenciesInstalled = false;
         try {
           const entries = await webContainerInstance.fs.readdir('/', { withFileTypes: true });
@@ -117,28 +164,23 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         }
 
         if (!dependenciesInstalled) {
-          // Step 2: Install dependencies
           setCurrentStep("installing");
           console.log("📦 Installing dependencies with pnpm...");
 
-          // Use pnpm as requested
           const installProcess = await webContainerInstance.spawn("pnpm", [
             "install",
             "--prefer-offline",
           ]);
 
-          // Stream install output to terminal
           installProcess.output.pipeTo(
             new WritableStream({
               write(data) {
-                console.log(`[pnpm install]: ${data}`); // Optional logging
-                scanForErrors(data);
+                console.log(`[pnpm install]: ${data}`);
               },
             })
           );
 
           const installExitCode = await installProcess.exit;
-
           if (installExitCode !== 0) {
             throw new Error(`Failed to install dependencies. Exit code: ${installExitCode}`);
           }
@@ -147,6 +189,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
           console.log("📦 Dependencies already exist in this session, skipping install...");
         }
 
+        // Build or start
         if (isProduction) {
           setCurrentStep("building");
           console.log("🏗️ Building for production...");
@@ -156,7 +199,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
             new WritableStream({
               write(data) {
                 console.log(`[build]: ${data}`);
-                scanForErrors(data);
+                processLog(data);
               },
             })
           );
@@ -166,29 +209,26 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
             throw new Error(`Build failed with exit code: ${buildExitCode}`);
           }
           console.log("✅ Build complete");
-          console.log("🚀 Serving production build...");
 
           const serveProcess = await webContainerInstance.spawn("pnpm", ["dlx", "serve", "dist"]);
           serveProcess.output.pipeTo(
             new WritableStream({
               write(data) {
                 console.log(`[serve]: ${data}`);
-                scanForErrors(data);
               },
             })
           );
         } else {
-          // Step 3: Start the server
           setCurrentStep("starting");
           console.log("🚀 Starting development server...");
 
           const startProcess = await webContainerInstance.spawn("pnpm", ["run", "dev"]);
+          devProcessRef.current = startProcess;
+
           startProcess.output.pipeTo(
             new WritableStream({
               write(data) {
-                // Log and scan
-                console.log(`[dev server]: ${data}`);
-                scanForErrors(data);
+                processLog(data);
               },
             })
           );
@@ -201,32 +241,27 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         console.error("Error setting up container:", err);
         const errorMessage = err instanceof Error ? err.message : String(err);
         setSetupError(errorMessage);
-        scanForErrors(`Fatal Error: ${errorMessage}`);
-        setupStartedRef.current = false; // Allow retry
+        setupStartedRef.current = false;
       }
     }
 
     setupContainer();
-  }, [webContainerInstance, isSetupComplete, isProduction, serverUrl, files, setIsSetupComplete, scanForErrors]);
+  }, [webContainerInstance, isSetupComplete, isProduction, serverUrl, files, setIsSetupComplete, processLog]);
 
-
-  // Handle file updates WITHOUT full re-setup
+  // File sync effect
   const prevFilesRef = useRef(files);
   useEffect(() => {
     if (!webContainerInstance || !isSetupComplete) return;
 
-    // Find changed and deleted files
     const changedFiles: Record<string, string> = {};
     const deletedFiles: string[] = [];
 
-    // Check for changes and new files
     Object.keys(files).forEach(path => {
       if (files[path] !== prevFilesRef.current[path]) {
         changedFiles[path] = files[path];
       }
     });
 
-    // Check for deletions
     Object.keys(prevFilesRef.current).forEach(path => {
       if (!(path in files)) {
         deletedFiles.push(path);
@@ -238,6 +273,12 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         updated: Object.keys(changedFiles),
         deleted: deletedFiles
       });
+
+      // Show compiling status when files change
+      if (Object.keys(changedFiles).length > 0) {
+        setCurrentStep("compiling");
+        setCompileMessage("Detected file changes. Recompiling...");
+      }
 
       const sync = async () => {
         // Handle deletions
@@ -252,7 +293,6 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         // Handle updates/creations
         for (const [path, content] of Object.entries(changedFiles)) {
           try {
-            // Ensure parent directory exists
             const parts = path.split('/');
             if (parts.length > 1) {
               const dirPath = parts.slice(0, -1).join('/');
@@ -278,8 +318,33 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
       case "installing": return "Installing dependencies...";
       case "building": return "Building for production...";
       case "starting": return "Starting development server...";
-      case "ready": return "Application ready!";
+      case "compiling": return compileMessage || "Compiling...";
+      case "ready": return compileMessage || "Application ready!";
       default: return "Initializing environment...";
+    }
+  };
+
+  const getStepIcon = () => {
+    switch (currentStep) {
+      case "mounting":
+      case "installing":
+      case "building":
+      case "starting":
+      case "compiling":
+        return <div className="h-12 w-12 rounded-full border-4 border-gray-100 border-t-blue-500 animate-spin" />;
+      case "ready":
+        return (
+          <div className="relative">
+            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle2 className="h-6 w-6 text-green-500" />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            </div>
+          </div>
+        );
+      default:
+        return <div className="h-12 w-12 rounded-full border-4 border-gray-100 border-t-blue-500 animate-spin" />;
     }
   };
 
@@ -299,12 +364,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500">
-              <div className="relative">
-                <div className="h-12 w-12 rounded-full border-4 border-gray-100 border-t-blue-500 animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-2 w-2 rounded-full bg-blue-500" />
-                </div>
-              </div>
+              {getStepIcon()}
               <div className="flex flex-col items-center gap-1">
                 <p className="text-sm font-medium text-gray-700">{getStepMessage()}</p>
                 <p className="text-xs text-gray-400">Please wait while we prepare your environment</p>
@@ -314,12 +374,23 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         </div>
       ) : (
         <div className={cn(
-          "flex-1 flex flex-col min-h-0 bg-white overflow-hidden relative shadow-sm"
+          "flex-1 flex flex-col min-h-0 bg-white overflow-hidden relative "
         )}>
-          {/* Iframe Preview Container - Clean, no header */}
-          <div className={cn(
-            "flex-1 relative bg-white overflow-hidden"
-          )}>
+          {/* Simple status overlay for compiling */}
+          {currentStep === "compiling" && (
+            <div className="absolute inset-0 bg-white z-10 flex items-center justify-center">
+              <div className="bg-white rounded-lg p-6  flex flex-col items-center gap-4">
+                <div className="h-12 w-12 rounded-full border-4 border-gray-100 border-t-blue-500 animate-spin" />
+                <div className="flex flex-col items-center gap-1">
+                  <p className="text-sm font-medium text-gray-700">{compileMessage}</p>
+                  <p className="text-xs text-gray-400">Please wait...</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Iframe Preview Container */}
+          <div className="flex-1 relative bg-white overflow-hidden">
             <iframe
               src={serverUrl}
               className="w-full h-full border-none"
