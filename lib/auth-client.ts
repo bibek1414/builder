@@ -1,4 +1,4 @@
-import { AuthUser, DecodedToken } from "@/types";
+import { AuthUser, DecodedToken } from "@/types/types";
 
 /**
  * Utility to get a cookie value by name on the client side.
