@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { AuthUser, DecodedToken } from "@/types";
+import { AuthUser, DecodedToken } from "@/types/types";
 
 export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
