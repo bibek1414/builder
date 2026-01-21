@@ -1,0 +1,220 @@
+# Template Next.js
+
+> A comprehensive Next.js template for building modern web applications with a rich set of UI components, custom hooks, and API integrations.
+
+## Table of Contents
+
+### App Structure
+
+- [layout.tsx](src/app/layout.tsx): Root layout with fonts and providers.
+- [page.tsx](src/app/page.tsx): Main landing page.
+- [globals.css](src/app/globals.css): Global styles and Tailwind directives.
+
+### UI Components
+
+- [accordion.tsx](src/components/ui/accordion.tsx): Accessible accordion component.
+- [alert-dialog.tsx](src/components/ui/alert-dialog.tsx): A modal dialog that interrupts the user with important content.
+- [alert.tsx](src/components/ui/alert.tsx): Displays a callout for user attention.
+- [aspect-ratio.tsx](src/components/ui/aspect-ratio.tsx): Displays content within a desired ratio.
+- [avatar.tsx](src/components/ui/avatar.tsx): An image element with a fallback for representing the user.
+- [badge.tsx](src/components/ui/badge.tsx): Displays a badge or a component that looks like a badge.
+- [breadcrumb.tsx](src/components/ui/breadcrumb.tsx): Displays the path to the current resource.
+- [button-group.tsx](src/components/ui/button-group.tsx): Group of buttons for related actions.
+- [button.tsx](src/components/ui/button.tsx): Interactive button component.
+- [calendar.tsx](src/components/ui/calendar.tsx): A date picker component.
+- [card.tsx](src/components/ui/card.tsx): Displays content in a card format.
+- [carousel.tsx](src/components/ui/carousel.tsx): A slideshow component for cycling through elements.
+- [chart.tsx](src/components/ui/chart.tsx): Components for displaying charts using Recharts.
+- [checkbox.tsx](src/components/ui/checkbox.tsx): A control that allows the user to toggle between checked and unchecked.
+- [collapsible.tsx](src/components/ui/collapsible.tsx): An interactive component that expands/collapses a panel.
+- [command.tsx](src/components/ui/command.tsx): Fast, composable, unstyled command menu for React.
+- [context-menu.tsx](src/components/ui/context-menu.tsx): Displays a menu located at the pointer, triggered by a right-click.
+- [dialog.tsx](src/components/ui/dialog.tsx): A window overlaid on either the primary window or another dialog window.
+- [drawer.tsx](src/components/ui/drawer.tsx): A panel that slides out from the edge of the screen.
+- [dropdown-menu.tsx](src/components/ui/dropdown-menu.tsx): Displays a list of options to the user.
+- [empty.tsx](src/components/ui/empty.tsx): Display for empty states.
+- [field.tsx](src/components/ui/field.tsx): Generic form field container.
+- [form.tsx](src/components/ui/form.tsx): Building forms with React Hook Form and Zod.
+- [hover-card.tsx](src/components/ui/hover-card.tsx): For displaying additional information on hover.
+- [input-group.tsx](src/components/ui/input-group.tsx): Grouped input elements.
+- [input-otp.tsx](src/components/ui/input-otp.tsx): One-time password input component.
+- [input.tsx](src/components/ui/input.tsx): Standard input component.
+- [item.tsx](src/components/ui/item.tsx): List or grid item component.
+- [kbd.tsx](src/components/ui/kbd.tsx): Keyboard key indicator.
+- [label.tsx](src/components/ui/label.tsx): Label component for form elements.
+- [menubar.tsx](src/components/ui/menubar.tsx): A persistent horizontal menu.
+- [navigation-menu.tsx](src/components/ui/navigation-menu.tsx): A collection of links for navigating websites.
+- [pagination.tsx](src/components/ui/pagination.tsx): Navigation for paginated content.
+- [popover.tsx](src/components/ui/popover.tsx): Displays rich content in a portal, triggered by a button.
+- [progress.tsx](src/components/ui/progress.tsx): Progress bar component.
+- [radio-group.tsx](src/components/ui/radio-group.tsx): A set of checkable buttons.
+- [resizable.tsx](src/components/ui/resizable.tsx): Components for creating resizable panels.
+- [scroll-area.tsx](src/components/ui/scroll-area.tsx): Augments native scroll functionality.
+- [select.tsx](src/components/ui/select.tsx): Displays a list of options for the user to pick from.
+- [separator.tsx](src/components/ui/separator.tsx): Visually or semantically separates content.
+- [sheet.tsx](src/components/ui/sheet.tsx): An extended dialog that comes out from the side.
+- [sidebar.tsx](src/components/ui/sidebar.tsx): A complex sidebar component with nesting and collapsibility.
+- [skeleton.tsx](src/components/ui/skeleton.tsx): Used to show a placeholder while content is loading.
+- [slider.tsx](src/components/ui/slider.tsx): An input where the user selects a value from a range.
+- [sonner.tsx](src/components/ui/sonner.tsx): Toast library for React.
+- [spinner.tsx](src/components/ui/spinner.tsx): Loading spinner component.
+- [switch.tsx](src/components/ui/switch.tsx): A control that allows the user to toggle between checked and unchecked.
+- [table.tsx](src/components/ui/table.tsx): Standard table component.
+- [tabs.tsx](src/components/ui/tabs.tsx): A set of layered sections of content.
+- [textarea.tsx](src/components/ui/textarea.tsx): Standard textarea component.
+- [toggle-group.tsx](src/components/ui/toggle-group.tsx): A set of buttons that can be toggled on and off.
+- [toggle.tsx](src/components/ui/toggle.tsx): A two-state button that can be either off or on.
+- [tooltip.tsx](src/components/ui/tooltip.tsx): A popup that displays information related to an element.
+
+### Custom Hooks
+
+- [use-appointment.ts](src/hooks/use-appointment.ts): Manage appointment data.
+- [use-banner.ts](src/hooks/use-banner.ts): Manage site banners.
+- [use-blogs.ts](src/hooks/use-blogs.ts): Fetch and manage blog posts.
+- [use-booking.ts](src/hooks/use-booking.ts): Manage booking processes.
+- [use-bulk-upload.ts](src/hooks/use-bulk-upload.ts): Handle bulk data uploads.
+- [use-cart.ts](src/hooks/use-cart.ts): Cart state management.
+- [use-category.ts](src/hooks/use-category.ts): Manage product categories.
+- [use-collections.ts](src/hooks/use-collections.ts): Manage product collections.
+- [use-contact.ts](src/hooks/use-contact.ts): Manage contact form submissions.
+- [use-conversation-list.ts](src/hooks/use-conversation-list.ts): Messaging conversation lists.
+- [use-conversations.ts](src/hooks/use-conversations.ts): Individual conversation management.
+- [use-dashboard.ts](src/hooks/use-dashboard.ts): Dashboard metrics and data.
+- [use-delivery-charge-calculator.ts](src/hooks/use-delivery-charge-calculator.ts): Calculate shipping costs.
+- [use-delivery-charges.ts](src/hooks/use-delivery-charges.ts): Manage delivery charge configurations.
+- [use-facebook-integrations.ts](src/hooks/use-facebook-integrations.ts): Manage Facebook SDK features.
+- [use-faq.ts](src/hooks/use-faq.ts): Frequently asked questions management.
+- [use-google-analytics.ts](src/hooks/use-google-analytics.ts): Analytics integration.
+- [use-issues.ts](src/hooks/use-issues.ts): Manage support issues.
+- [use-logistics.ts](src/hooks/use-logistics.ts): Logistics and shipping management.
+- [use-mobile.tsx](src/hooks/use-mobile.tsx): Detect mobile screen sizes.
+- [use-newsletter.ts](src/hooks/use-newsletter.ts): Newsletter subscription management.
+- [use-orders.ts](src/hooks/use-orders.ts): Order tracking and management.
+- [use-our-client.ts](src/hooks/use-our-client.ts): Client management.
+- [use-payment-gateway.ts](src/hooks/use-payment-gateway.ts): Manage payment integrations.
+- [use-popup.ts](src/hooks/use-popup.ts): Site popup management.
+- [use-portfolio.ts](src/hooks/use-portfolio.ts): Portfolio item management.
+- [use-pricing.ts](src/hooks/use-pricing.ts): Pricing plan management.
+- [use-product.ts](src/hooks/use-product.ts): Product catalog management.
+- [use-promocode.ts](src/hooks/use-promocode.ts): Manage promotional codes.
+- [use-promo-code-validate.ts](src/hooks/use-promo-code-validate.ts): Validate promo codes.
+- [use-search-products.ts](src/hooks/use-search-products.ts): Product search logic.
+- [use-services.ts](src/hooks/use-services.ts): Manage offered services.
+- [use-site-config.ts](src/hooks/use-site-config.ts): Fetch site-wide settings.
+- [use-subcategory.ts](src/hooks/use-subcategory.ts): Manage subcategories.
+- [use-team-member.ts](src/hooks/use-team-member.ts): Team member management.
+- [use-template.ts](src/hooks/use-template.ts): Manage site templates.
+- [use-testimonials.ts](src/hooks/use-testimonials.ts): Customer testimonial management.
+- [use-videos.ts](src/hooks/use-videos.ts): Manage video content.
+- [use-websocket-messages.ts](src/hooks/use-websocket-messages.ts): Real-time messaging logic.
+- [use-whatsapp.ts](src/hooks/use-whatsapp.ts): WhatsApp integration settings.
+
+### API Services
+
+- [appointment.ts](src/services/api/appointment.ts): Appointment endpoints.
+- [banner.ts](src/services/api/banner.ts): Banner endpoints.
+- [blog.ts](src/services/api/blog.ts): Blog endpoints.
+- [booking.ts](src/services/api/booking.ts): Booking endpoints.
+- [bulk-upload.ts](src/services/api/bulk-upload.ts): Bulk upload endpoints.
+- [category.ts](src/services/api/category.ts): Category endpoints.
+- [collection.ts](src/services/api/collection.ts): Collection endpoints.
+- [contact.ts](src/services/api/contact.ts): Contact endpoints.
+- [conversations.ts](src/services/api/conversations.ts): Messaging endpoints.
+- [dashboard.ts](src/services/api/dashboard.ts): Dashboard endpoints.
+- [delivery-charges.ts](src/services/api/delivery-charges.ts): Delivery charge endpoints.
+- [facebook.ts](src/services/api/facebook.ts): Facebook integration endpoints.
+- [faq.ts](src/services/api/faq.ts): FAQ endpoints.
+- [google-analytics.ts](src/services/api/google-analytics.ts): Analytics endpoints.
+- [issues.ts](src/services/api/issues.ts): Suppport issue endpoints.
+- [logistics.ts](src/services/api/logistics.ts): Logistics endpoints.
+- [newsletter.ts](src/services/api/newsletter.ts): Newsletter endpoints.
+- [orders.ts](src/services/api/orders.ts): Order endpoints.
+- [our-client.ts](src/services/api/our-client.ts): Client endpoints.
+- [payment-gateway.ts](src/services/api/payment-gateway.ts): Payment gateway endpoints.
+- [popup.ts](src/services/api/popup.ts): Popup endpoints.
+- [portfolio.ts](src/services/api/portfolio.ts): Portfolio endpoints.
+- [pricing.ts](src/services/api/pricing.ts): Pricing endpoints.
+- [product.ts](src/services/api/product.ts): Product endpoints.
+- [promo-code.ts](src/services/api/promo-code.ts): Promo code endpoints.
+- [promo-code-validate.ts](src/services/api/promo-code-validate.ts): Promo validation endpoints.
+- [services.ts](src/services/api/services.ts): Service endpoints.
+- [site-config.ts](src/services/api/site-config.ts): Site configuration endpoints.
+- [sub-category.ts](src/services/api/sub-category.ts): Subcategory endpoints.
+- [team-member.ts](src/services/api/team-member.ts): Team member endpoints.
+- [template.ts](src/services/api/template.ts): Template endpoints.
+- [testimonials.ts](src/services/api/testimonials.ts): Testimonial endpoints.
+- [videos.ts](src/services/api/videos.ts): Video endpoints.
+- [whatsapp.ts](src/services/api/whatsapp.ts): WhatsApp endpoints.
+- [wit.ts](src/services/api/wit.ts): NLP integration endpoints.
+
+### Schemas & Validation
+
+- [blog.form.ts](src/schemas/blog.form.ts): Blog post Zod schema.
+- [category.form.ts](src/schemas/category.form.ts): Category Zod schema.
+- [chekout.form.ts](src/schemas/chekout.form.ts): Checkout Zod schema.
+- [login.form.ts](src/schemas/customer/login.form.ts): Customer login schema.
+- [signup.form.ts](src/schemas/customer/signup.form.ts): Customer signup schema.
+- [issues.form.ts](src/schemas/issues.form.ts): Issue report schema.
+- [login.form.ts](src/schemas/login.form.ts): Admin login schema.
+- [portfolio.form.ts](src/schemas/portfolio.form.ts): Portfolio item schema.
+- [product.form.ts](src/schemas/product.form.ts): Product catalog schema.
+- [promocode.form.ts](src/schemas/promocode.form.ts): Promo code schema.
+- [services.form.ts](src/schemas/services.form.ts): Service management schema.
+- [signup.form.ts](src/schemas/signup.form.ts): Admin signup schema.
+- [template-account.form.ts](src/schemas/template-account.form.ts): Template account schema.
+
+### Types & Interfaces
+
+- [appointment.ts](src/types/appointment.ts): Appointment data types.
+- [banner.ts](src/types/banner.ts): Banner data types.
+- [blog.ts](src/types/blog.ts): Blog data types.
+- [booking.ts](src/types/booking.ts): Booking data types.
+- [cart.ts](src/types/cart.ts): Cart data types.
+- [collection.ts](src/types/collection.ts): Collection data types.
+- [contact.ts](src/types/contact.ts): Contact data types.
+- [conversations.ts](src/types/conversations.ts): Messaging data types.
+- [dashboard.ts](src/types/dashboard.ts): Dashboard data types.
+- [delivery-charges.ts](src/types/delivery-charges.ts): Shipping data types.
+- [facebook.ts](src/types/facebook.ts): Facebook integration types.
+- [faq.ts](src/types/faq.ts): FAQ data types.
+- [google-analytics.ts](src/types/google-analytics.ts): Analytics data types.
+- [issues.ts](src/types/issues.ts): Support issue types.
+- [logistics.ts](src/types/logistics.ts): Logistics data types.
+- [newsletter.ts](src/types/newsletter.ts): Newsletter types.
+- [orders.ts](src/types/orders.ts): Order data types.
+- [our-client.ts](src/types/our-client.ts): Client data types.
+- [payment-gateway.ts](src/types/payment-gateway.ts): Payment data types.
+- [popup.ts](src/types/popup.ts): Popup data types.
+- [portfolio.ts](src/types/portfolio.ts): Portfolio data types.
+- [pricing.ts](src/types/pricing.ts): Pricing data types.
+- [product.ts](src/types/product.ts): Product data types.
+- [promo-code.ts](src/types/promo-code.ts): Promo code types.
+- [services.ts](src/types/services.ts): Service types.
+- [site-config.ts](src/types/site-config.ts): Configuration types.
+- [team-member.ts](src/types/team-member.ts): Team member types.
+- [template.ts](src/types/template.ts): Template types.
+- [testimonial.ts](src/types/testimonial.ts): Testimonial types.
+- [videos.ts](src/types/videos.ts): Video types.
+- [whatsapp.ts](src/types/whatsapp.ts): WhatsApp types.
+
+### Utilities
+
+- [facebook.ts](src/lib/facebook.ts): Facebook integration.
+- [facebook-utils.ts](src/lib/facebook-utils.ts): Facebook helper functions.
+- [jwt-utils.ts](src/lib/jwt-utils.ts): JWT token handling.
+- [message-store.ts](src/lib/message-store.ts): Real-time message storage.
+- [string-utils.ts](src/lib/string-utils.ts): String manipulation helpers.
+- [utils.ts](src/lib/utils.ts): Common UI helpers (cn).
+- [video-utils.ts](src/lib/video-utils.ts): Video processing helpers.
+- [api-error.ts](src/utils/api-error.ts): API error handling.
+- [auth.ts](src/utils/auth.ts): Authentication helpers.
+- [headers.ts](src/utils/headers.ts): HTTP header helpers.
+
+### Configuration & Context
+
+- [site.ts](src/config/site.ts): Site metadata and configuration.
+- [CartContext.tsx](src/contexts/CartContext.tsx): Context for global shopping cart state.
+- [query-provider.tsx](src/components/providers/query-provider.tsx): TanStack Query provider setup.
+- [next.config.mjs](next.config.mjs): Next.js configuration.
+- [tailwind.config.ts](tailwind.config.ts): Tailwind CSS configuration.
+- [package.json](package.json): Project dependencies and scripts.
