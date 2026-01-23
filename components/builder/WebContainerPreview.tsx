@@ -38,6 +38,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
 
   // Refs
   const setupStartedRef = useRef(false);
+  const initialLoadCompleteRef = useRef(false);
   const devProcessRef = useRef<any>(null);
   const errorRegex = useRef(/(error:|exception:|failed:|fatal:|syntax failure|build failed|err_|node_modules\/.*\.js:\d+|module not found|cannot find module|uncaught|referenced by the type)/i);
   const errorBuffer = useRef<string>("");
@@ -49,11 +50,16 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
 
     // Update current step based on logs
     if (data.includes("Compiling /")) {
-      setCurrentStep("compiling");
-      setCompileMessage("Compiling application...");
+      // Only show compiling state for initial load, not for subsequent page navigations
+      if (!initialLoadCompleteRef.current) {
+        setCurrentStep("compiling");
+        setCompileMessage("Compiling application...");
+      }
     }
 
     if (data.includes("Compiled /") || data.includes("Compiled in")) {
+      initialLoadCompleteRef.current = true;
+
       // Extract time if available
       const timeMatch = data.match(/in\s+([\d.]+(s|ms))/);
       if (timeMatch) {
@@ -70,8 +76,15 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
     }
 
     if (data.includes("[Fast Refresh] rebuilding")) {
-      setCurrentStep("compiling");
-      setCompileMessage("Hot reloading...");
+      // Optional: decide if we want to show hot reload. 
+      // Logic suggests hiding it if we want to be less intrusive, 
+      // but hot reload usually updates in place without overlay.
+      // If the overlay checks currentStep === 'compiling', and we set it here, it will show.
+      // User asked "only on the first load".
+      if (!initialLoadCompleteRef.current) {
+        setCurrentStep("compiling");
+        setCompileMessage("Hot reloading...");
+      }
     }
 
     if (data.includes("[Fast Refresh] done")) {
@@ -89,6 +102,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
     }
 
     if (data.includes("Ready in")) {
+      initialLoadCompleteRef.current = true;
       const timeMatch = data.match(/Ready in\s+([\d.]+s)/);
       if (timeMatch) {
         setCompileMessage(`Ready in ${timeMatch[1]}`);
@@ -121,6 +135,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
         console.log("🌍 Server already running, skipping setup sequence");
         setIsSetupComplete(true);
         setCurrentStep("ready");
+        initialLoadCompleteRef.current = true;
         return;
       }
 
@@ -130,6 +145,7 @@ const WebContainerPreview: React.FC<WebContainerPreviewProps> = ({
       }
 
       setupStartedRef.current = true;
+      initialLoadCompleteRef.current = false;
       try {
         setSetupError(null);
         setCurrentStep("mounting");

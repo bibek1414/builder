@@ -178,6 +178,7 @@ export const BuilderView: React.FC<BuilderViewProps> = ({ workspaceId }) => {
                     <Allotment.Pane
                         visible={showChat}
                         minSize={280}
+                        snap
                         preferredSize={400}
                     >
                         <div className="h-full border-r border-gray-800 bg-gray-900 flex flex-col">
@@ -196,10 +197,11 @@ export const BuilderView: React.FC<BuilderViewProps> = ({ workspaceId }) => {
                         </div>
                     </Allotment.Pane>
 
-                    <Allotment.Pane>
+                    <Allotment.Pane snap>
                         <div className="h-full bg-white flex flex-col relative">
                             <CodePreview
                                 key={0}
+                                
                                 files={filesMap}
                                 activeFile={activeFile || ''}
                                 webContainerState={webContainerState}
