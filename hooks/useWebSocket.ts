@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
 import type { FileNode } from "../types/types";
 import { siteConfig } from "@/config/site";
 interface WebSocketMessage {
@@ -58,6 +59,7 @@ export const useWebSocket = (workspaceId: string) => {
   const maxReconnectAttempts = 5;
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
   const connectRef = useRef<() => void>(() => {});
+  const recloneStatusRef = useRef<string | number | null>(null);
 
   // Custom console logging with styling
   const logSocketMessage = useCallback(
@@ -78,7 +80,7 @@ export const useWebSocket = (workspaceId: string) => {
         if (data.content.length < 500) {
           console.log(
             "Content preview:",
-            data.content.substring(0, 200) + "..."
+            data.content.substring(0, 200) + "...",
           );
         }
       }
@@ -87,7 +89,7 @@ export const useWebSocket = (workspaceId: string) => {
 
       console.groupEnd();
     },
-    []
+    [],
   );
 
   const connect = useCallback(() => {
@@ -126,7 +128,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(
         `🔌 WebSocket Closed - Code: ${event.code}, Reason: ${
           event.reason || "No reason"
-        }`
+        }`,
       );
       setStatus("Disconnected");
       setStatusColor("#888");
@@ -134,12 +136,12 @@ export const useWebSocket = (workspaceId: string) => {
       if (reconnectAttempts.current < maxReconnectAttempts) {
         const delay = Math.min(
           1000 * Math.pow(2, reconnectAttempts.current),
-          30000
+          30000,
         );
         console.log(
           `🔄 Reconnecting in ${delay}ms (attempt ${
             reconnectAttempts.current + 1
-          }/${maxReconnectAttempts})`
+          }/${maxReconnectAttempts})`,
         );
 
         reconnectTimeout.current = setTimeout(() => {
@@ -163,7 +165,7 @@ export const useWebSocket = (workspaceId: string) => {
             console.log(
               `🌳 File tree received with ${
                 msg.items?.length || msg.tree?.items?.length || 0
-              } items`
+              } items`,
             );
             const items = msg.items || msg.tree?.items;
             if (items) {
@@ -271,7 +273,12 @@ export const useWebSocket = (workspaceId: string) => {
 
           case "notification":
             console.log(`📢 Notification: ${msg.message}`);
-            // You can add a toast notification here if you have a notification system
+            if (recloneStatusRef.current) {
+              toast.success(msg.message, { id: recloneStatusRef.current });
+              recloneStatusRef.current = null;
+            } else {
+              toast.success(msg.message);
+            }
             break;
 
           case "component_selected":
@@ -287,7 +294,14 @@ export const useWebSocket = (workspaceId: string) => {
 
           case "error":
             console.error("🚨 Server error:", msg.error || msg.message);
-            alert(`Server Error: ${msg.error || msg.message}`);
+            if (recloneStatusRef.current) {
+              toast.error(msg.error || msg.message, {
+                id: recloneStatusRef.current,
+              });
+              recloneStatusRef.current = null;
+            } else {
+              toast.error(msg.error || msg.message);
+            }
             break;
 
           case "ai_status":
@@ -347,16 +361,16 @@ export const useWebSocket = (workspaceId: string) => {
             socket?.readyState === WebSocket.CONNECTING
               ? "CONNECTING"
               : socket?.readyState === WebSocket.CLOSING
-              ? "CLOSING"
-              : socket?.readyState === WebSocket.CLOSED
-              ? "CLOSED"
-              : "UNKNOWN"
-          }`
+                ? "CLOSING"
+                : socket?.readyState === WebSocket.CLOSED
+                  ? "CLOSED"
+                  : "UNKNOWN"
+          }`,
         );
         return false;
       }
     },
-    [socket, logSocketMessage]
+    [socket, logSocketMessage],
   );
 
   // API Methods
@@ -364,7 +378,7 @@ export const useWebSocket = (workspaceId: string) => {
     (path: string, silent: boolean = false) => {
       const normPath = normalizePath(path);
       console.log(
-        `📂 Requesting file: ${normPath}${silent ? " (silent)" : ""}`
+        `📂 Requesting file: ${normPath}${silent ? " (silent)" : ""}`,
       );
 
       if (!silent) {
@@ -378,7 +392,7 @@ export const useWebSocket = (workspaceId: string) => {
       }
       return send({ action: "open_file", path: normPath });
     },
-    [send]
+    [send],
   );
 
   const updateFile = useCallback(
@@ -386,7 +400,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(`✏️ Updating file: ${path} (${content.length} chars)`);
       return send({ action: "update_file", path, content });
     },
-    [send]
+    [send],
   );
 
   const createFile = useCallback(
@@ -394,7 +408,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(`➕ Creating file: ${path}`);
       return send({ action: "create_file", path, content });
     },
-    [send]
+    [send],
   );
 
   const deleteFile = useCallback(
@@ -402,7 +416,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(`🗑️ Deleting file: ${path}`);
       return send({ action: "delete_file", path });
     },
-    [send]
+    [send],
   );
 
   const createDirectory = useCallback(
@@ -410,7 +424,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(`📁 Creating directory: ${path}`);
       return send({ action: "create_folder", path });
     },
-    [send]
+    [send],
   );
 
   const renameFile = useCallback(
@@ -422,11 +436,13 @@ export const useWebSocket = (workspaceId: string) => {
         new_path: newPath,
       });
     },
-    [send]
+    [send],
   );
 
   const recloneProject = useCallback(() => {
     console.log(`♻️ Re-cloning project request`);
+    const toastId = toast.loading("Re-cloning project...");
+    recloneStatusRef.current = toastId;
     return send({ action: "reclone_project" });
   }, [send]);
 
@@ -435,7 +451,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(`🐙 Cloning repository: ${url}`);
       return send({ action: "github_clone", repo_url: url });
     },
-    [send]
+    [send],
   );
 
   const pushChanges = useCallback(
@@ -443,7 +459,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(`📤 Pushing changes: ${message}`);
       return send({ action: "github_push", message });
     },
-    [send]
+    [send],
   );
 
   const uploadFile = useCallback(
@@ -451,7 +467,7 @@ export const useWebSocket = (workspaceId: string) => {
       console.log(`📤 Uploading file: ${path} (${content.length} chars)`);
       return send({ action: "upload_file", path, content });
     },
-    [send]
+    [send],
   );
 
   const refreshFileTree = useCallback(() => {

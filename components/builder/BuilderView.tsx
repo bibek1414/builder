@@ -201,7 +201,7 @@ export const BuilderView: React.FC<BuilderViewProps> = ({ workspaceId }) => {
                         <div className="h-full bg-white flex flex-col relative">
                             <CodePreview
                                 key={0}
-                                
+
                                 files={filesMap}
                                 activeFile={activeFile || ''}
                                 webContainerState={webContainerState}
@@ -218,7 +218,10 @@ export const BuilderView: React.FC<BuilderViewProps> = ({ workspaceId }) => {
                 repoUrl={repoUrl}
                 setRepoUrl={setRepoUrl}
                 onClone={() => cloneRepo(repoUrl)}
-                onReclone={recloneProject}
+                onReclone={() => {
+                    recloneProject();
+                    setIsGithubModalOpen(false);
+                }}
                 onPush={pushChanges}
                 commitMessage={commitMessage}
                 setCommitMessage={setCommitMessage}
