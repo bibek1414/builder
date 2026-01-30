@@ -12,15 +12,30 @@ import {
   Plus,
   Bot,
   Copy,
-  Check
+  Check,
+  Key
 } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { AIStatusBoard } from "./AIStatusBoard";
+import { ApiKeyDialog } from "./ApiKeyDialog";
 
 interface ChatMessage {
   role: "user" | "ai";
   content: string;
   files_modified?: string[];
+  isApiKeyError?: boolean;
+}
+
+interface ApiError extends Error {
+  response?: {
+    error?: {
+      message?: string;
+      code?: number;
+      status?: string;
+    } | string;
+    message?: string;
+  };
+  status?: number;
 }
 
 const API_BASE_URL = siteConfig.apiBuildUrl;
@@ -52,6 +67,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [input, setInput] = useState("");
   const [tenantName] = useState<string>(() => getSubDomain() || "luminous-glow");
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +92,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         }),
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(`HTTP error! status: ${response.status}`) as ApiError;
+        error.response = errorData;
+        error.status = response.status;
+        throw error;
       }
       return response.json() as Promise<{
         status: string;
@@ -111,12 +131,47 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         ]);
       }
     },
-    onError: (error: Error) => {
+    onError: (error: ApiError) => {
+      // Check if it's an API key error
+      const errorResponse = error.response;
+
+      // Try to extract error message from various possible structures
+      const errorMsg =
+        (typeof errorResponse?.error === 'object' ? errorResponse.error.message : null) ||
+        errorResponse?.message ||
+        errorResponse?.error ||
+        error.message;
+
+      const errorStr = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg);
+
+      // Check if it's an API key error (more comprehensive check)
+      const isApiKeyError =
+        errorStr.toLowerCase().includes('api key') ||
+        errorStr.toLowerCase().includes('invalid_argument') ||
+        (typeof errorResponse?.error === 'object' && errorResponse.error.code === 400) ||
+        (typeof errorResponse?.error === 'object' && errorResponse.error.status === 'INVALID_ARGUMENT') ||
+        (error.status === 500 && errorStr.toLowerCase().includes('api'));
+
+      let errorMessage = '';
+
+      if (isApiKeyError) {
+        errorMessage = '🔑 API Key Error: Your API key is missing or invalid. Please add a valid API key to continue.';
+      } else if (typeof errorResponse?.error === 'object' && errorResponse.error.message) {
+        errorMessage = `❌ Error: ${errorResponse.error.message}`;
+      } else if (errorResponse?.message) {
+        errorMessage = `❌ Error: ${errorResponse.message}`;
+      } else if (errorResponse?.error) {
+        errorMessage = `❌ Error: ${typeof errorResponse.error === 'string' ? errorResponse.error : JSON.stringify(errorResponse.error)}`;
+      } else {
+        errorMessage = `❌ Network Error: ${error.message}. Please check your API configuration.`;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: "ai",
-          content: `❌ Network Error: ${error.message}`,
+          content: errorMessage,
+          isApiKeyError: isApiKeyError,
         },
       ]);
     },
@@ -216,6 +271,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   __html: msg.content.replace(/\n/g, "<br/>"),
                 }}
               />
+
+              {/* API Key Error Action Button */}
+              {msg.isApiKeyError && (
+                <button
+                  onClick={() => setIsApiKeyDialogOpen(true)}
+                  className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#007acc] hover:bg-[#006bb3] text-white rounded-lg text-[12px] font-medium transition-all duration-200 shadow-[0_0_10px_rgba(0,122,204,0.3)] hover:shadow-[0_0_15px_rgba(0,122,204,0.5)]"
+                >
+                  <Key className="size-4" />
+                  Add API Key
+                </button>
+              )}
 
               {msg.role === "ai" && (
                 <button
@@ -340,6 +406,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           overflow-wrap: anywhere;
         }
       `}</style>
+
+      {/* API Key Dialog */}
+      <ApiKeyDialog
+        open={isApiKeyDialogOpen}
+        onOpenChange={setIsApiKeyDialogOpen}
+      />
     </div>
   );
 };
