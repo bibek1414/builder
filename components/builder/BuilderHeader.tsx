@@ -1,15 +1,17 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Database,
     GitBranch,
     PanelLeft,
-    PanelLeftClose
+    PanelLeftClose,
+    Key
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { getSubDomain } from "@/lib/auth-client";
+import { ApiKeyDialog } from './ApiKeyDialog';
 
 interface BuilderHeaderProps {
     status: string;
@@ -30,6 +32,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
     showChat,
     onToggleChat,
 }) => {
+    const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
     return (
         <header className="h-12 border-b border-gray-800 bg-[#0d1117] flex items-center justify-between px-4 z-10 shrink-0">
             <div className="flex items-center gap-4">
@@ -57,6 +60,14 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
             </div>
 
             <div className="flex items-center gap-3">
+                <button
+                    onClick={() => setIsApiKeyDialogOpen(true)}
+                    className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors shadow-sm shadow-blue-900/20"
+                >
+                    <Key size={14} />
+                    API Key
+                </button>
+
                 <Link href={`https://${getSubDomain()}.nepdora.com`} target='_blank'>
                     <button
                         className='hidden md:flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md transition-colors shadow-sm shadow-purple-900/20 disabled:opacity-50'
@@ -81,6 +92,11 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
                     {isUsingRealData ? "Processing..." : "Real Data"}
                 </button>
             </div>
+
+            <ApiKeyDialog
+                open={isApiKeyDialogOpen}
+                onOpenChange={setIsApiKeyDialogOpen}
+            />
         </header>
     );
 };
