@@ -14,8 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Key, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { siteConfig } from '@/config/site';
-import { getCookie } from '@/lib/auth-client';
 
 interface ApiKeyDialogProps {
     open: boolean;
@@ -31,8 +29,8 @@ export const ApiKeyDialog: React.FC<ApiKeyDialogProps> = ({ open, onOpenChange }
         setIsLoading(true);
 
         try {
-            
-            const response = await fetch(`${siteConfig.apiBuildUrl}/api/web-builder/api-keys/`, {
+            // Call the local Next.js API route instead of the backend directly
+            const response = await fetch('/api/save-api-key', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
