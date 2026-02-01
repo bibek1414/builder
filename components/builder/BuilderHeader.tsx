@@ -68,7 +68,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
                     API Key
                 </button>
 
-                <Link href={`https://${getSubDomain()}.nepdora.com`} target='_blank'>
+                <Link href={`https://${getSubDomain()}-preview.nepdora.com`} target='_blank'>
                     <button
                         className='hidden md:flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md transition-colors shadow-sm shadow-purple-900/20 disabled:opacity-50'
                     >
