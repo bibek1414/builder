@@ -61,7 +61,7 @@ export const templateService = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Failed to use real data");
+      throw new Error(errorData.message || "Please login again!");
     }
 
     return response.json();

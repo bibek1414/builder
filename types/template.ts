@@ -38,3 +38,10 @@ export interface TemplateListResponse {
 export interface UseTemplatePayload {
   template_id?: number;
 }
+
+export interface UseRealDataResponse {
+  message: string;
+  old_tenant_name: string;
+  new_tenant_name: string;
+  current_tenant: string;
+}

@@ -52,14 +52,7 @@ export const BuilderView: React.FC<BuilderViewProps> = ({ workspaceId }) => {
     const { mutate: mutateRealData, isPending: isUsingRealData } = useUseRealData();
 
     const handleUseRealData = () => {
-        mutateRealData(undefined, {
-            onSuccess: () => {
-                alert("Success: Use real data request sent!");
-            },
-            onError: (error) => {
-                alert(`Error: ${error instanceof Error ? error.message : "Failed to use real data"} `);
-            }
-        });
+        mutateRealData();
     };
 
     const handleTerminalError = (error: string) => {
